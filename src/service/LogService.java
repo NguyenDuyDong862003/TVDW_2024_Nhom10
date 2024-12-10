@@ -5,7 +5,6 @@ import model.Log;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,31 +76,5 @@ public class LogService {
             ps.close();
             conn.close();
         } catch (SQLException e) {}
-    }
-
-    public static void main(String[] args) {
-        List<Log> list = LogService.getInstance().getListLog();
-        String status = "LW_SU";
-        for (Log st : list) {
-            if (st.getStatus().equals(status)) {
-                System.out.println("GOOD");
-                break;
-            } else System.out.println("BAD");
-        }
-
-        // Hàm lấy ngày, tháng, giờ
-        LocalDateTime now = LocalDateTime.now();
-        LocalDate date = now.toLocalDate();
-        LocalTime time = now.toLocalTime();
-
-//        for (Log status : list) { // Lặp qua từng phần tử trong list
-//            if (status.getStatus() == "LW_SU") {
-//                System.out.println("Good");
-//                LogService.getInstance().addLog(1, "1", 0, "LDW_ST", 0, 0, date, time);
-//            } else {
-//                System.out.println("Bad");
-//                LogService.getInstance().addLog(1, "1", 0, "LDW_ERR", 0, 0, date, time);
-//            }
-//        }
     }
 }
