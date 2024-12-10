@@ -177,3 +177,22 @@ GO
 -- select * from file_log;
 
 EXEC GetFileLogWithConfigDetails;
+
+-- ----------------------------
+-- Procedure structure for getLogFileToday
+-- ----------------------------
+IF OBJECT_ID('getLogFileToday', 'P') IS NOT NULL
+    DROP PROCEDURE getLogFileToday;
+GO
+
+CREATE PROCEDURE getLogFileToday
+    @status_In NVARCHAR(255) -- Tham số đầu vào
+	@ID_config INT
+AS
+BEGIN
+    -- Routine body goes here...
+    SELECT *
+    FROM file_log
+    WHERE status = @status_In AND ID_config = @ID_config;
+END;
+GO
