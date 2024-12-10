@@ -20,7 +20,6 @@ public class StagingToMart {
     // Sau khi có được status của Log
     // Nếu xem status: LW_ST?
     // Chuyển dữ liệu từ các bảng Weekly_ qua Tivi rồi chuyển qua Agg
-    // CPS first
     public void getData() {
 
         Config config = ConfigService.getInstance().getCPSConfig();
@@ -46,20 +45,17 @@ public class StagingToMart {
 
                     // 3. Đưa dữ liệu từ Table Tivi qua Table aggregate_tvdata
                     insertDataIntoTableAgg();
+                    // Cập nhập log thành công
+                    LogService.getInstance().addLog(config.getId(), config.getName(), 0, "LDW_SU", 0, 0, date, time);
+                    System.out.println("LDW_SU");
 
-                    // 4. Kiểm tra xem Table agg có dữ liệu không?
-                    // Cập nhập lại log
-                    if (getDataTableAgg() != null) { // Chèn dữ liệu qua Table agg thành công
-                        // Cập nhập log thành công
-                        LogService.getInstance().addLog(config.getId(), config.getName(), 0, "LDW_SU", 0, 0, date, time);
-                        System.out.println("LDW_SU");
-                    }
                 } else { // Cập nhập log thất bại
                     LogService.getInstance().addLog(config.getId(), config.getName(), 0, "LDW_ERR", 0, 0, date, time);
                     System.out.println("LDW_ERR");
                 }
 
-                // Trùng dữ liệu?
+                // 4. Trùng dữ liệu?
+                //deleteDuplicateData();
                 break;
             } else { // ERROR
                 LogService.getInstance().addLog(config.getId(), config.getName(), 0, "LDW_ERR", 0, 0, date, time);
@@ -68,6 +64,27 @@ public class StagingToMart {
             }
         }
     }
+
+    // Xử lí trùng lặp
+    private void deleteDuplicateData() {
+
+        String querry = "DELETE a1 FROM aggregate_tvdata a1, aggregate_tvdata a2 \n" +
+                "WHERE a1.`SP_Key` > a2.`SP_Key` AND a1.`ProductName` = a2.`ProductName`";
+
+        try {
+            conn = new DBConnec().connecTVDW();
+            ps = conn.prepareStatement(querry);
+            ps.executeUpdate();
+
+            System.out.println("Xóa dữ liệu trùng lặp thành công!");
+
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     // Lấy dữ liệu từ bảng Weekly_CPS
     private List<TiviCPS> getDataTableCPS() {
@@ -102,8 +119,13 @@ public class StagingToMart {
     // insert dữ liệu từ các Table Weekly_ vào Table Tivi
     private void insertDataIntoTableTivi() {
 
-        Config config = ConfigService.getInstance().getCPSConfig();
+        Config configCPS = ConfigService.getInstance().getCPSConfig();
+        Config configDMCL = ConfigService.getInstance().getDMCLConfig();
+        Config configDMX = ConfigService.getInstance().getDMXConfig();
+
         List<TiviCPS> listCPS = getDataTableCPS();
+        List<TiviDMCL> listDMCL = getDataTableDMCL();
+        List<TiviDMX> listDMX = getDataTableDMX();
 
         String querryTivi = "INSERT INTO `tivi`(`ID_config`, `ProductName`, `OriginalPrice`, `DiscountedPrice`, `ProductLink`, `ImageLink`, `id_dateOnCSV`, `date_expired`) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -116,9 +138,10 @@ public class StagingToMart {
             conn = new DBConnec().connecTVDW();
             ps = conn.prepareStatement(querryTivi);
 
+            // CPS
             for (TiviCPS data : listCPS) {
                 // SPKey ASIC
-                ps.setInt(1, config.getId());
+                ps.setInt(1, configCPS.getId());
                 ps.setString(2, data.getProductName());
                 ps.setDouble(3, data.getOriginalPrice());
                 ps.setDouble(4, data.getDiscountedPrice());
@@ -130,6 +153,35 @@ public class StagingToMart {
                 ps.executeUpdate();
             }
 
+            // DMCL
+            for (TiviDMCL data : listDMCL) {
+                // SPKey ASIC
+                ps.setInt(1, configDMCL.getId());
+                ps.setString(2, data.getTitle());
+                ps.setDouble(3, data.getOriginalPrice());
+                ps.setDouble(4, data.getDiscountedPrice());
+                ps.setString(5, data.getProductDetailLink());
+                ps.setString(6, data.getImgSrc());
+                ps.setInt(7, data.getIdDateOnCSV());
+                ps.setDate(8, Date.valueOf(date));
+
+                ps.executeUpdate();
+            }
+
+            // DMX
+            for (TiviDMX data : listDMX) {
+                // SPKey ASIC
+                ps.setInt(1, configDMX.getId());
+                ps.setString(2, data.getName());
+                ps.setDouble(3, data.getOriginalPrice());
+                ps.setDouble(4, data.getDiscountedPrice());
+                ps.setString(5, data.getProductDetailLink());
+                ps.setString(6, data.getImageLink());
+                ps.setInt(7, data.getIdDateOnCSV());
+                ps.setDate(8, Date.valueOf(date));
+
+                ps.executeUpdate();
+            }
 
             ps.close();
             conn.close();
@@ -174,9 +226,9 @@ public class StagingToMart {
     // insert dữ liệu từ Table Tivi vào Table agg
     private void insertDataIntoTableAgg() {
 
-        Config config = ConfigService.getInstance().getNameSource();
         DateDim dim = DateDimService.getInstance().getLastDateDim();
         List<Tivi> listTivi = getDataTableTivi();
+        Config config = ConfigService.getInstance().getNameSource();
 
         String querryAgg = "INSERT INTO aggregate_tvdata (SP_Key, NameSource, ProductName, OriginalPrice, DiscountedPrice, ProductLink, ImageLink, dateOnCSV, date_expired) VALUES " +
                 "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -241,7 +293,72 @@ public class StagingToMart {
         return listAgg;
     }
 
+    // Lấy dữ liệu từ bảng Weekly_DMCL
+    private List<TiviDMCL> getDataTableDMCL() {
+
+        List<TiviDMCL> listDMCL = new ArrayList<>();
+        String querryDMCL = "SELECT * FROM Weekly_DMCL";
+
+        try {
+            // Tạo kết nối đến Staging
+            conn = new DBConnec().connecStaging();
+            ps = conn.prepareStatement(querryDMCL);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                listDMCL.add(new TiviDMCL(rs.getString("Title"),
+                        rs.getString("ImgSrc"),
+                        rs.getString("ProductDetailLink"),
+                        rs.getDouble("OriginalPrice"),
+                        rs.getDouble("DiscountPrice"),
+                        rs.getString("ScreenSize"),
+                        rs.getString("Resolution"),
+                        rs.getInt("id_dateOnCSV"),
+                        rs.getDate("dateOnCSV").toLocalDate()));
+            }
+            rs.close();
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listDMCL;
+    }
+
+    // Lấy dữ liệu từ bảng Weekly_DMX
+    private List<TiviDMX> getDataTableDMX() {
+
+        List<TiviDMX> listDMX = new ArrayList<>();
+        String querryDMX = "SELECT * FROM Weekly_DMX";
+
+        try {
+            // Tạo kết nối đến Staging
+            conn = new DBConnec().connecStaging();
+            ps = conn.prepareStatement(querryDMX);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                listDMX.add(new TiviDMX(rs.getString("Name"),
+                        rs.getString("ImageLink"),
+                        rs.getString("ScreenSize"),
+                        rs.getString("Resolution"),
+                        rs.getDouble("OriginalPrice"),
+                        rs.getDouble("DiscountPrice"),
+                        rs.getString("ProductDetailLink"),
+                        rs.getInt("id_dateOnCSV"),
+                        rs.getDate("dateOnCSV").toLocalDate()));
+            }
+            rs.close();
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listDMX;
+    }
+
     public static void main(String[] args) {
-        new StagingToMart().getData();
+        //new StagingToMart().insertDataIntoTableAgg();
+        //new StagingToMart().deleteDuplicateData();
     }
 }

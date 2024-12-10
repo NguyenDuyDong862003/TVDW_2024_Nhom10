@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 public class TiviCPS {
     private String ProductName;
-    private double 	OriginalPrice;
-    private double 	DiscountedPrice;
+    private double OriginalPrice;
+    private double DiscountedPrice;
     private String ProductLink;
     private String ImageLink;
     private int idDateOnCSV;
