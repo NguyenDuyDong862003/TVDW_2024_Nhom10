@@ -1,0 +1,4 @@
+serverName=LAPTOP-F6E5464R\\SQLEXPRESS
+port=1433
+username=sa
+password=123456789

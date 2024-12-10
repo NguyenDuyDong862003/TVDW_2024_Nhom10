@@ -1,0 +1,3 @@
+Chọn phần security > edit > add:
+NT SERVICE\MSSQL$SQLEXPRESS
+Bấm check, nếu hiện gạch chân thì ok, lưu lại
