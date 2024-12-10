@@ -53,16 +53,13 @@ public class ConfigService {
         return null;
     }
 
-    // So sánh để lấy NameSource
-    // CPS first
-    public Config getNameSource() {
-        String sql = "SELECT c.id, c.Name, c.Source_Web, c.Source_File_Location, c.Destination_Table_Temp_Staging, c.Destination_Table_Staging, c.Destination_Table_DW\n" +
-                "FROM Tivi t\n" +
-                "INNER JOIN config_file c ON t.ID_config = c.ID LIMIT 1;";
+    // Lấy Config cho DMCL
+    public Config getDMCLConfig() {
+        String querry = "SELECT * FROM config_file where Name = 'DMCL'";
 
         try {
             conn = new DBConnec().connecTVDW();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(querry);
             rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -82,8 +79,76 @@ public class ConfigService {
         return null;
     }
 
+    // Lấy Config cho DMX
+    public Config getDMXConfig() {
+        String querry = "SELECT * FROM config_file where Name = 'DMX'";
+
+        try {
+            conn = new DBConnec().connecTVDW();
+            ps = conn.prepareStatement(querry);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                return new Config(rs.getInt("ID"),
+                        rs.getString("Name"),
+                        rs.getString("Source_Web"),
+                        rs.getString("Source_File_Location"),
+                        rs.getString("Destination_Table_Temp_Staging"),
+                        rs.getString("Destination_Table_Staging"),
+                        rs.getString("Destination_Table_DW"));
+            }
+
+            rs.close();
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {}
+        return null;
+    }
+
+    // So sánh để lấy NameSource
+    public Config getNameSource() {
+        String sql = "SELECT DISTINCT c.id, c.Name, c.Source_Web, c.Source_File_Location, c.Destination_Table_Temp_Staging, c.Destination_Table_Staging, c.Destination_Table_DW " +
+                "FROM config_file c " +
+                "INNER JOIN tivi t ON t.ID_config = c.ID;";
+
+        try {
+            conn = new DBConnec().connecTVDW();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                //list.add(
+                        return new Config(rs.getInt("ID"),
+                        rs.getString("Name"),
+                        rs.getString("Source_Web"),
+                        rs.getString("Source_File_Location"),
+                        rs.getString("Destination_Table_Temp_Staging"),
+                        rs.getString("Destination_Table_Staging"),
+                        rs.getString("Destination_Table_DW"))
+                //)
+                ;
+            }
+
+            rs.close();
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {}
+
+//        List<Config> list = new ArrayList<>();
+//        String CPS = "CPS";
+//        String DMCL = "DMCL";
+//        String DMX = "DMX";
+//
+//        for (Config item : list) {
+//            if (item.getName().equals(CPS)) {
+//
+//            }
+//        }
+
+        return null;
+    }
+
     public static void main(String[] args) {
-        Config config = new ConfigService().getNameSource();
-        System.out.println(config.getSourceWeb());
+        System.out.println(new ConfigService().getNameSource());
     }
 }

@@ -6,8 +6,8 @@ public class Tivi {
     private int SPKey;
     private int IDConfig;
     private String ProductName;
-    private double 	OriginalPrice;
-    private double 	DiscountPrice;
+    private double OriginalPrice;
+    private double DiscountPrice;
     private String ProductLink;
     private String ImageLink;
     private int idDateOnCSV;
