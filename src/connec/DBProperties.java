@@ -7,17 +7,26 @@ public class DBProperties {
     private static Properties proStaging = new Properties();
     private static Properties proTVDW = new Properties();
     private static Properties proControl = new Properties();
+    private static Properties proMart = new Properties();
 
     static {
         try {
             proStaging.load(DBProperties.class.getClassLoader().getResourceAsStream("resources/DBStaging.properties"));
-            proTVDW.load(DBProperties.class.getClassLoader().getResourceAsStream("resources/TVDW.properties"));
+            proTVDW.load(DBProperties.class.getClassLoader().getResourceAsStream("resources/DBTVDW.properties"));
             proControl.load(DBProperties.class.getClassLoader().getResourceAsStream("resources/DBControl.properties"));
+            proMart.load(DBProperties.class.getClassLoader().getResourceAsStream("resources/DBMart.properties"));
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
     }
+
+    // proFileDB
+    public static String hostMart = proMart.getProperty("host");
+    public static String portMart = proMart.getProperty("port");
+    public static String userNameMart = proMart.getProperty("user");
+    public static String passMart= proMart.getProperty("password");
+    public static String dbNameMart = proMart.getProperty("database");
 
     // proStaging
     public static String hostStaging = proStaging.getProperty("db.host");
