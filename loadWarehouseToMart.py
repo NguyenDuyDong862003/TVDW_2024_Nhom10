@@ -18,11 +18,12 @@ def ReadDatabaseConfig(filePath):
         
         # Trích xuất thông tin từ section [database]
         return {
-            "host": config['database']['ip'],
-            "port": int(config['database']['port']),
-            "user": config['database']['username'],
-            "password": config['database']['password'],
-            "database": config['database']['dbname'],
+            "host": config['sqlserver']['host'],  
+            "port": int(config['sqlserver']['port']),
+            "user": config['sqlserver']['user'],
+            "password": config['sqlserver']['password'],
+            "database": config['sqlserver']['database'],
+            "trusted_connection": config.getboolean('sqlserver', 'trusted_connection', fallback=True)  # Nếu có
         }
     except Exception as e:
         print(f"Lỗi khi đọc file .ini: {e}")
@@ -40,7 +41,6 @@ def ConnectToDatabase(configDb):
         return None
 
 # Hàm thực thi câu truy vấn SQL.
-# Hàm thực thi câu truy vấn SQL.
 def ExecuteQuery(cursor, query, params=None, fetchOne=False):
     try:
         cursor.execute(query, params)  # Thực thi truy vấn SQL
@@ -49,7 +49,6 @@ def ExecuteQuery(cursor, query, params=None, fetchOne=False):
     except pyodbc.Error as e:
         print(f"Lỗi khi thực thi truy vấn: {e}")
         return None
-
 
 # Hàm gọi proceduce ở DataMart.
 def CallProc(cursor, proceduceName, params=None, fetchOne=False):
@@ -128,30 +127,45 @@ def WriteErrorLog(errorMessage, filePath):
 import argparse
 
 def connect(filename):
-    # 1 đọc file để lấy cấu hình
+    # 1. Đọc file .ini để lấy cấu hình
     db_config = configparser.ConfigParser()
     db_config.read(filename)
+
+    # Lấy các giá trị cấu hình từ file .ini
     host = db_config.get('sqlserver', 'host')
     user = db_config.get('sqlserver', 'user')
     password = db_config.get('sqlserver', 'password')
     database = db_config.get('sqlserver', 'database')
-    # 2 connect database
+    trusted_connection = db_config.getboolean('sqlserver', 'trusted_connection', fallback=True)
+    # 2. Kết nối tới cơ sở dữ liệu
     try:
-        connection_string = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={host};"
-            f"DATABASE={database};"
-            f"UID={user};"
-            f"PWD={password};"
-        )
+        # Kiểm tra nếu sử dụng Windows Authentication (trusted_connection = True)
+        if trusted_connection:
+            connection_string = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={host};"
+                f"DATABASE={database};"
+                f"Trusted_Connection=yes;"
+            )
+        else:
+            connection_string = (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={host};"
+                f"DATABASE={database};"
+                f"UID={user};"
+                f"PWD={password};"
+            )
+        
+        # Kết nối đến SQL Server
         cnx = pyodbc.connect(connection_string)
         print("Connected to SQL Server database")
         return cnx
+    
     except pyodbc.Error as err:
-        print(err)
+        print(f"Error: {err}")
         current_date = datetime.now().strftime("%d%m%Y")
-        WriteErrorLog(str(err),fr"D:\\TVDW_2024_Nhom10\\ERR\\error_CONNECT_DB\\{current_date}_tv.txt")
-
+        WriteErrorLog(str(err), fr"D:\\TVDW_2024_Nhom10\\ERR\\error_CONNECT_DB\\{current_date}_tv.txt")
+        return None
 
 def countdown(t):
     while t:
