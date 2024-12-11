@@ -1,5 +1,6 @@
 -- Thay đúng đường dẫn của file csv date dim trước khi run nha
-DECLARE @Path_File_Date_Dim_CSV NVARCHAR(255) = 'C:\Users\ASUS\Desktop\Data warehouse\month_dim_date_dim_dw_20200626\Date_Dim\date_dim_without_quarter.csv';
+DECLARE @Path_File_Date_Dim_CSV NVARCHAR(255) = 'D:\TVDW_2024_Nhom10\Date_Dim\date_dim_without_quarter.csv';
+GO
 -- run script này sẽ tạo ra: 
 -- +Database TVDW_StagingArea
 -- +Table date_dim (đã insert sẵn toàn bộ data ở file csv date dim của thầy)
@@ -36,6 +37,7 @@ ELSE
 BEGIN
     PRINT 'Database "TVDW_StagingArea" already exists.';
 END
+GO
 
 use TVDW_StagingArea;
 

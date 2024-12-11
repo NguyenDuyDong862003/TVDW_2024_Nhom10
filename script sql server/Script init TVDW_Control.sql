@@ -1,5 +1,6 @@
 -- Thay đúng đường dẫn của thư mục chứa file csv hàng tuần trong máy mấy bạn trước khi run nha
-DECLARE @Folder_Contain_Weekly_CSV NVARCHAR(255) = 'C:\Users\ASUS\Desktop\Data warehouse\Weekly csv';
+DECLARE @Folder_Contain_Weekly_CSV NVARCHAR(255) = 'D:\TVDW_2024_Nhom10\Date_Dim\date_dim_without_quarter.csv';
+GO
 -- run script này sẽ tạo ra: 
 -- +Database TVDW_Control
 -- +Table config_file (đã insert sẵn 3 dòng tương ứng với 3 web)
@@ -28,7 +29,7 @@ ELSE
 BEGIN
     PRINT 'Database "TVDW_Control" already exists.';
 END
-
+GO
 use TVDW_Control;
 
 -- tao bang config_file

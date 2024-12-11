@@ -1,6 +1,8 @@
 -- Thay đúng đường dẫn của file csv date dim, đường dẫn của thư mục chứa file csv hàng tuần trước khi run nha
-DECLARE @Path_File_Date_Dim_CSV NVARCHAR(255) = 'C:\Users\ASUS\Desktop\Data warehouse\month_dim_date_dim_dw_20200626\Date_Dim\date_dim_without_quarter.csv';
-DECLARE @Folder_Contain_Weekly_CSV NVARCHAR(255) = 'C:\Users\ASUS\Desktop\Data warehouse\Weekly csv';
+DECLARE @Path_File_Date_Dim_CSV NVARCHAR(255) = 'D:\TVDW_2024_Nhom10\Date_Dim\date_dim_without_quarter.csv';
+GO
+DECLARE @Folder_Contain_Weekly_CSV NVARCHAR(255) = 'D:\TVDW_2024_Nhom10\Weekly csv';
+GO
 -- run script này sẽ tạo ra: 
 -- +Database TVDW
 -- +Table config_file (đã insert sẵn 3 dòng tương ứng với 3 web)
@@ -26,7 +28,7 @@ ELSE
 BEGIN
     PRINT 'Database "TVDW" already exists.';
 END
-
+GO
 use TVDW;
 
 -- tao bang datedim va load vo luon

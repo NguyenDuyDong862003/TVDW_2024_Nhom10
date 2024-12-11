@@ -1,5 +1,3 @@
--- Thay đúng đường dẫn của file csv date dim trước khi run nha
-DECLARE @Path_File_Date_Dim_CSV NVARCHAR(255) = 'D:\TV Project\Date_Dim\date_dim_without_quarter.csv';
 -- run script này sẽ tạo ra: 
 -- +Database DataMart
 -- +Table aggregate_tvdata
@@ -26,8 +24,10 @@ ELSE
 BEGIN
     PRINT 'Database "DataMart" already exists.';
 END
+GO
 
 use DataMart;
+GO
 
 -- Table structure for aggregate_tvdata
 IF OBJECT_ID('aggregate_tvdata', 'U') IS NULL
@@ -45,6 +45,7 @@ BEGIN
 		date_expired DATE
     );
 END;
+GO
 
 -- Table structure for tvdata
 IF OBJECT_ID('tvdata', 'U') IS NULL
@@ -62,6 +63,8 @@ BEGIN
 		date_expired DATE
     );
 END;
+GO
+
 -- Procedure for copyBeforeCurrentDate
 IF OBJECT_ID('copyBeforeCurrentDate', 'P') IS NOT NULL
     DROP PROCEDURE copyBeforeCurrentDate;
